@@ -1,0 +1,16 @@
+{
+  "name": "turo-mcp",
+  "version": "1.0.0",
+  "description": "MCP plugin for Turo — pull bookings, calendar, revenue, and gaps via browser automation",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "setup": "node setup.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "playwright": "^1.49.0"
+  }
+}
