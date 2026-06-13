@@ -4,23 +4,31 @@ import { chromium } from "playwright";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
-const COOKIES_FILE = new URL("./turo_session.json", import.meta.url).pathname;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const COOKIES_FILE = path.join(__dirname, "turo_session.json");
 
 const server = new McpServer({
   name: "turo-mcp",
   version: "1.0.0",
 });
 
-// Load saved cookies (so we don't re-login every time)
-async function getAuthenticatedPage(browser) {
-  const context = await browser.newContext();
+// Load saved cookies into a non-headless browser to avoid Cloudflare detection
+async function getAuthenticatedPage() {
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--start-minimized"],
+  });
+  const context = await browser.newContext({
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  });
   if (fs.existsSync(COOKIES_FILE)) {
     const cookies = JSON.parse(fs.readFileSync(COOKIES_FILE, "utf8"));
     await context.addCookies(cookies);
   }
   const page = await context.newPage();
-  return { page, context };
+  return { page, context, browser };
 }
 
 async function saveCookies(context) {
@@ -61,13 +69,11 @@ server.tool(
     status: z.enum(["upcoming", "active", "past", "all"]).optional().default("upcoming"),
   },
   async ({ status }) => {
-    const browser = await chromium.launch({ headless: true });
-    const { page, context } = await getAuthenticatedPage(browser);
+    const { page, context, browser } = await getAuthenticatedPage();
 
     await page.goto("https://turo.com/us/en/host/trips");
     await page.waitForLoadState("networkidle");
 
-    // Extract trip cards
     const bookings = await page.evaluate(() => {
       const cards = Array.from(document.querySelectorAll("[data-testid='trip-card'], .tripCard, .trip-card, article"));
       return cards.slice(0, 30).map((card) => ({
@@ -96,8 +102,7 @@ server.tool(
     vehicle_name: z.string().optional().describe("Which car if you have multiple (partial name match)"),
   },
   async ({ vehicle_name }) => {
-    const browser = await chromium.launch({ headless: true });
-    const { page, context } = await getAuthenticatedPage(browser);
+    const { page, context, browser } = await getAuthenticatedPage();
 
     await page.goto("https://turo.com/us/en/host/vehicles");
     await page.waitForLoadState("networkidle");
@@ -119,8 +124,7 @@ server.tool(
   "Get your Turo earnings summary — total revenue, trips completed, and payout history",
   {},
   async () => {
-    const browser = await chromium.launch({ headless: true });
-    const { page, context } = await getAuthenticatedPage(browser);
+    const { page, context, browser } = await getAuthenticatedPage();
 
     await page.goto("https://turo.com/us/en/host/earnings");
     await page.waitForLoadState("networkidle");
