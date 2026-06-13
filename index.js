@@ -71,25 +71,20 @@ server.tool(
   async ({ status }) => {
     const { page, context, browser } = await getAuthenticatedPage();
 
-    await page.goto("https://turo.com/us/en/host/trips");
+    await page.goto("https://turo.com/us/en/trips/booked");
     await page.waitForLoadState("networkidle");
 
-    const bookings = await page.evaluate(() => {
-      const cards = Array.from(document.querySelectorAll("[data-testid='trip-card'], .tripCard, .trip-card, article"));
-      return cards.slice(0, 30).map((card) => ({
-        text: card.innerText?.slice(0, 400) || "",
-      }));
-    });
+    const pageText = await page.evaluate(() => document.body.innerText?.slice(0, 5000));
 
     await saveCookies(context);
     await browser.close();
 
-    if (bookings.length === 0) {
-      return { content: [{ type: "text", text: "No bookings found. You may need to run turo_login first if your session expired." }] };
+    if (!pageText || pageText.length < 100) {
+      return { content: [{ type: "text", text: "Could not load bookings page. Session may have expired — try running turo_login again." }] };
     }
 
     return {
-      content: [{ type: "text", text: `Found ${bookings.length} booking entries:\n\n` + bookings.map((b, i) => `[${i + 1}]\n${b.text}`).join("\n\n---\n\n") }],
+      content: [{ type: "text", text: pageText }],
     };
   }
 );
@@ -104,7 +99,7 @@ server.tool(
   async ({ vehicle_name }) => {
     const { page, context, browser } = await getAuthenticatedPage();
 
-    await page.goto("https://turo.com/us/en/host/vehicles");
+    await page.goto("https://turo.com/us/en/trips/calendar");
     await page.waitForLoadState("networkidle");
 
     const pageText = await page.evaluate(() => document.body.innerText?.slice(0, 3000));
@@ -126,7 +121,7 @@ server.tool(
   async () => {
     const { page, context, browser } = await getAuthenticatedPage();
 
-    await page.goto("https://turo.com/us/en/host/earnings");
+    await page.goto("https://turo.com/us/en/trips/earnings");
     await page.waitForLoadState("networkidle");
 
     const earningsText = await page.evaluate(() => {
