@@ -1,0 +1,7 @@
+{
+  "turo": {
+    "type": "stdio",
+    "command": "C:\\Program Files\\nodejs\\node.exe",
+    "args": ["C:\\Users\\jjm72\\OneDrive\\Documents\\Claude_Plugins\\turo-mcp\\index.js"]
+  }
+}

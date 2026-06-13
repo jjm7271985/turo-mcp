@@ -1,0 +1,10 @@
+{
+  "name": "turo-mcp",
+  "version": "1.0.0",
+  "description": "Turo MCP plugin — pull bookings, calendar, earnings, and gap analysis via browser automation",
+  "author": {
+    "name": "jjm7271985",
+    "email": "jjm7271985@yahoo.com"
+  },
+  "repository": "https://github.com/jjm7271985/turo-mcp"
+}
