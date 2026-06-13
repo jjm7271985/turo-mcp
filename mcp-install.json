@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "turo": {
+      "command": "node",
+      "args": ["./index.js"]
+    }
+  }
+}
